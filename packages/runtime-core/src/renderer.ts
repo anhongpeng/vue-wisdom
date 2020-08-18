@@ -2139,6 +2139,7 @@ function baseCreateRenderer(
     }
   }
 
+  // 组件渲染的核心逻辑
   const render: RootRenderFunction = (vnode, container) => {
     if (vnode == null) {
       if (container._vnode) {

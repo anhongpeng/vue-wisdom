@@ -208,6 +208,7 @@ export function createAppAPI<HostElement>(
 
       mount(rootContainer: HostElement, isHydrate?: boolean): any {
         if (!isMounted) {
+          // 创建根组件的 vnode
           const vnode = createVNode(rootComponent as Component, rootProps)
           // store app context on the root VNode.
           // this will be set on the root instance on initial mount.
@@ -223,6 +224,9 @@ export function createAppAPI<HostElement>(
           if (isHydrate && hydrate) {
             hydrate(vnode as VNode<Node, Element>, rootContainer as any)
           } else {
+            // 利用渲染器渲染 vnode
+            // 利用闭包和函数柯里化的技巧，很好地实现了参数保留：
+            // 执行 app.mount 的时候，并不需要传入渲染器 render，因为在执行 createAppAPI 的时候渲染器 render 参数已经被保留下来了
             render(vnode, rootContainer)
           }
           isMounted = true

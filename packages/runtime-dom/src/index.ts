@@ -21,14 +21,17 @@ declare module '@vue/reactivity' {
   }
 }
 
+// 渲染相关的配置，如更新属性的方法、操作 DOM 的方法
 const rendererOptions = extend({ patchProp, forcePatchProp }, nodeOps)
 
 // lazy create the renderer - this makes core renderer logic tree-shakable
 // in case the user only imports reactivity utilities from Vue.
+// 渲染器：服务于跨平台渲染，简单理解为包含平台渲染逻辑的 JavaScript 对象
 let renderer: Renderer<Element> | HydrationRenderer
 
 let enabledHydration = false
 
+// 延时创建渲染器，当用户仅依赖响应式包时，让核心渲染逻辑支持 tree-shaking
 function ensureRenderer() {
   return renderer || (renderer = createRenderer<Node, Element>(rendererOptions))
 }
@@ -51,6 +54,7 @@ export const hydrate = ((...args) => {
 }) as RootHydrateFunction
 
 export const createApp = ((...args) => {
+  // 创建 app 对象
   const app = ensureRenderer().createApp(...args)
 
   if (__DEV__) {
@@ -58,6 +62,7 @@ export const createApp = ((...args) => {
   }
 
   const { mount } = app
+  // 重写 mount 方法
   app.mount = (containerOrSelector: Element | string): any => {
     const container = normalizeContainer(containerOrSelector)
     if (!container) return
