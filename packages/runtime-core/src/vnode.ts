@@ -330,6 +330,7 @@ function _createVNode(
   }
 
   // class & style normalization.
+  // 处理 props 相关逻辑，标准化 class 和 style
   if (props) {
     // for reactive or proxy objects, we need to clone it to enable mutation.
     if (isProxy(props) || InternalObjectKey in props) {
@@ -350,7 +351,7 @@ function _createVNode(
   }
 
   // encode the vnode type information into a bitmap
-  // 根据不同类型执行对应的处理逻辑
+  // 得到 vnode 类型信息编码
   const shapeFlag = isString(type)
     ? ShapeFlags.ELEMENT
     : __FEATURE_SUSPENSE__ && isSuspense(type)
@@ -405,6 +406,7 @@ function _createVNode(
     warn(`VNode created with invalid key (NaN). VNode type:`, vnode.type)
   }
 
+  // 标准化子节点，把不同数据类型的 children 转成数组或文本
   normalizeChildren(vnode, children)
 
   if (
