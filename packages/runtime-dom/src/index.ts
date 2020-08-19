@@ -63,16 +63,25 @@ export const createApp = ((...args) => {
 
   const { mount } = app
   // 重写 mount 方法
+  // Q：为什么要重写这个方法？而不把相关逻辑放在 app 对象的 mount 方法内部来实现？
+  // A：不仅仅要为 Web 平台服务，目标是「支持跨平台渲染」。createApp 函数内部的 app.mount 方法是一个标准的跨平台组件渲染流程
+  // 参数：containerOrSelector 可以传元素或字符串
+  // 职责：
+  //   1.重写 mount 以完善 Web 平台逻辑
+  //   2.兼容 2.x 写法，参数支持「DOM 对象」和「选择器字符串」
   app.mount = (containerOrSelector: Element | string): any => {
+    // 如果 containerOrSelector 是字符串，就要把它转为 DOM 对象，作为最终挂载的容器
     const container = normalizeContainer(containerOrSelector)
     if (!container) return
     const component = app._component
+    // 如果组件对象没有定义 render 函数和 template 模板，那么取容器的 innerHTML 作为组件模板内容
     if (!isFunction(component) && !component.render && !component.template) {
       component.template = container.innerHTML
     }
     // clear content before mounting
+    // 挂载前清空容器内容
     container.innerHTML = ''
-    const proxy = mount(container)
+    const proxy = mount(container) // 真正的挂载
     container.removeAttribute('v-cloak')
     container.setAttribute('data-v-app', '')
     return proxy
