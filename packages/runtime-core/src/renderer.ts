@@ -2141,15 +2141,15 @@ function baseCreateRenderer(
 
   // 组件渲染的核心逻辑
   const render: RootRenderFunction = (vnode, container) => {
-    if (vnode == null) {
+    if (vnode == null) { // 如果 vnode 为 null，「销毁」组件
       if (container._vnode) {
         unmount(container._vnode, null, null, true)
       }
-    } else {
+    } else { // 否则「创建」或「更新」组件
       patch(container._vnode || null, vnode, container)
     }
     flushPostFlushCbs()
-    container._vnode = vnode
+    container._vnode = vnode // 缓存 vnode 节点，表示已渲染
   }
 
   const internals: RendererInternals = {
