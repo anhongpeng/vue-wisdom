@@ -426,6 +426,14 @@ function baseCreateRenderer(
 
   // Note: functions inside this closure should use `const xxx = () => {}`
   // style in order to prevent being inlined by minifiers.
+  // patch - 打补丁
+  // 参数：
+  //   n1：旧的 vnode，当 n1 为 null 时，表示这是挂载过程
+  //   n2：新的 vnode，类型不同，后续的执行逻辑也不同
+  //   container：DOM 容器，vnode 渲染成 DOM 后，会挂载到 container 下
+  // 职责：
+  //   1.根据 vnode 挂载 DOM
+  //   2.根据新旧 vnode 更新 DOM
   const patch: PatchFn = (
     n1,
     n2,
@@ -437,6 +445,7 @@ function baseCreateRenderer(
     optimized = false
   ) => {
     // patching & not same type, unmount old tree
+    // 如果存在新旧节点，且新旧节点类型不同，则销毁旧节点
     if (n1 && !isSameVNodeType(n1, n2)) {
       anchor = getNextHostNode(n1)
       unmount(n1, parentComponent, parentSuspense, true)
@@ -450,20 +459,20 @@ function baseCreateRenderer(
 
     const { type, ref, shapeFlag } = n2
     switch (type) {
-      case Text:
+      case Text: // 处理文本节点
         processText(n1, n2, container, anchor)
         break
-      case Comment:
+      case Comment: // 处理注释节点
         processCommentNode(n1, n2, container, anchor)
         break
-      case Static:
+      case Static: // 处理静态节点
         if (n1 == null) {
           mountStaticNode(n2, container, anchor, isSVG)
         } else if (__DEV__) {
           patchStaticNode(n1, n2, container, isSVG)
         }
         break
-      case Fragment:
+      case Fragment: // 处理 Fragment 元素
         processFragment(
           n1,
           n2,
@@ -476,6 +485,7 @@ function baseCreateRenderer(
         )
         break
       default:
+        // 按位操作符 - 按位与，a & b：对于每一个比特位，只有两个操作数相应的比特位都是 1 时，结果才为 1，否则为 0
         if (shapeFlag & ShapeFlags.ELEMENT) {
           processElement(
             n1,
