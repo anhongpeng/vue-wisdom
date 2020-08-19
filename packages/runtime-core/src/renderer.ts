@@ -1284,6 +1284,7 @@ function baseCreateRenderer(
     }
   }
 
+  // 设置并运行带副作用的渲染函数
   const setupRenderEffect: SetupRenderEffectFn = (
     instance,
     initialVNode,
@@ -1294,14 +1295,20 @@ function baseCreateRenderer(
     optimized
   ) => {
     // create reactive effect for rendering
+    // 创建响应式的副作用渲染函数
+    // 职责：
+    //   1.初始渲染：
+    //     （1）渲染组件生成 subTree
+    //     （2）把 subTree 挂载到 container 中
     instance.update = effect(function componentEffect() {
-      if (!instance.isMounted) {
+      if (!instance.isMounted) { // 初始渲染
         let vnodeHook: VNodeHook | null | undefined
         const { el, props } = initialVNode
         const { bm, m, parent } = instance
         if (__DEV__) {
           startMeasure(instance, `render`)
         }
+        // 渲染组件生成子树 vnode
         const subTree = (instance.subTree = renderComponentRoot(instance))
         if (__DEV__) {
           endMeasure(instance, `render`)
@@ -1332,6 +1339,7 @@ function baseCreateRenderer(
           if (__DEV__) {
             startMeasure(instance, `patch`)
           }
+          // 把子树 vnode 挂载到 container 中
           patch(
             null,
             subTree,
@@ -1344,6 +1352,7 @@ function baseCreateRenderer(
           if (__DEV__) {
             endMeasure(instance, `patch`)
           }
+          // 保留渲染生成的子树根 DOM 节点
           initialVNode.el = subTree.el
         }
         // mounted hook
@@ -1367,7 +1376,7 @@ function baseCreateRenderer(
           queuePostRenderEffect(a, parentSuspense)
         }
         instance.isMounted = true
-      } else {
+      } else { // 组件更新
         // updateComponent
         // This is triggered by mutation of component's own state (next: null)
         // OR parent calling processComponent (next: VNode)
