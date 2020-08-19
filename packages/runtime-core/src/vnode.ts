@@ -292,6 +292,11 @@ const normalizeRef = ({ ref }: VNodeProps): VNode['ref'] => {
     : null) as any
 }
 
+// Q：为什么要设计 vnode 这样的数据结构？
+// A：
+//   1.抽象：将组件的渲染过程抽象成创建、处理 vnode 对象。使用抽象的 vnode 可以代表不同类型的节点
+//   2.跨平台：基于 vnode 可以区分做服务端渲染、weex 平台、小程序平台的渲染
+//   ps：误区：不要认为使用 vnode 就可以不用操作 DOM 了。Diff 算法可以减少 DOM 操作，但最终还是免不了要操作 DOM
 export const createVNode = (__DEV__
   ? createVNodeWithArgsTransform
   : _createVNode) as typeof _createVNode
@@ -345,6 +350,7 @@ function _createVNode(
   }
 
   // encode the vnode type information into a bitmap
+  // 根据不同类型执行对应的处理逻辑
   const shapeFlag = isString(type)
     ? ShapeFlags.ELEMENT
     : __FEATURE_SUSPENSE__ && isSuspense(type)

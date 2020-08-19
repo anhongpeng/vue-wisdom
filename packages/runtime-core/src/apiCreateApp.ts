@@ -206,10 +206,11 @@ export function createAppAPI<HostElement>(
         return app
       },
 
-      // 参数 rootContainer 可以是不同类型的值，在 Web 平台下是一个 DOM 对象，在其他平台（e.g. weex 和小程序）中可以是其他类型值
+      // 参数：rootContainer 可以是不同类型的值，在 Web 平台下是一个 DOM 对象，在其他平台（e.g. weex 和小程序）中可以是其他类型值
       mount(rootContainer: HostElement, isHydrate?: boolean): any {
         if (!isMounted) {
           // 创建根组件的 vnode
+          // vnode 是用来描述 DOM 的 JavaScript 对象，可以描述「不同类型的节点」，如普通元素节点、组件节点等、纯文本、注释等
           const vnode = createVNode(rootComponent as Component, rootProps)
           // store app context on the root VNode.
           // this will be set on the root instance on initial mount.
