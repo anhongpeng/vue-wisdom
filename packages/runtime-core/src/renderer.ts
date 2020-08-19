@@ -497,7 +497,7 @@ function baseCreateRenderer(
             isSVG,
             optimized
           )
-        } else if (shapeFlag & ShapeFlags.COMPONENT) {
+        } else if (shapeFlag & ShapeFlags.COMPONENT) { // 处理组件类型
           processComponent(
             n1,
             n2,
@@ -1144,7 +1144,7 @@ function baseCreateRenderer(
     isSVG: boolean,
     optimized: boolean
   ) => {
-    if (n1 == null) {
+    if (n1 == null) { // 旧组件为 null，则挂载组件
       if (n2.shapeFlag & ShapeFlags.COMPONENT_KEPT_ALIVE) {
         ;(parentComponent!.ctx as KeepAliveContext).activate(
           n2,
@@ -1164,11 +1164,16 @@ function baseCreateRenderer(
           optimized
         )
       }
-    } else {
+    } else { // 更新组件
       updateComponent(n1, n2, optimized)
     }
   }
 
+  // 挂载组件函数
+  // 职责：
+  //   1.创建组件实例：通过对象方式创建当前渲染的组件实例 instance
+  //   2.设置组件实例：instance 存着组件相关数据，维护了组件上下文。设置以进行对 props、插槽及其他实例属性的初始化处理
+  //   3.设置并运行带副作用的渲染函数
   const mountComponent: MountComponentFn = (
     initialVNode,
     container,
@@ -1178,6 +1183,7 @@ function baseCreateRenderer(
     isSVG,
     optimized
   ) => {
+    // 职责1：创建组件实例
     const instance: ComponentInternalInstance = (initialVNode.component = createComponentInstance(
       initialVNode,
       parentComponent,
@@ -1202,6 +1208,7 @@ function baseCreateRenderer(
     if (__DEV__) {
       startMeasure(instance, `init`)
     }
+    // 职责2：设置组件实例
     setupComponent(instance)
     if (__DEV__) {
       endMeasure(instance, `init`)
@@ -1225,6 +1232,7 @@ function baseCreateRenderer(
       return
     }
 
+    // 职责3：设置并运行带副作用的渲染函数
     setupRenderEffect(
       instance,
       initialVNode,
