@@ -7,6 +7,51 @@
 * 会把综合性的源码解析、知识方案，发表到 `Issues`；
 * 每个月进行一次对 `vue-next` 的同步，确保即时性；
 
+## 源码目录结构解析
+
+得益于 Lerna 的多包管理，框架的所有内部库都在 `packages/` 目录下管理：
+
+``` iterm
+├── packages
+│   ├── compiler-core // 平台无关的编译器
+│   ├── compiler-dom // 浏览器平台的编译器
+│   ├── compiler-sfc // 为单文件组件编译成 JS 提供工具
+│   ├── compiler-ssr
+│   ├── global.d.ts
+│   ├── reactivity // 数据响应式系统
+│   ├── runtime-core // 平台无关的运行时
+│   ├── runtime-dom // 浏览器平台的运行时
+│   ├── runtime-test // 提供测试用 API
+│   ├── server-renderer // 用于服务端渲染
+│   ├── shared // 框架内部共享的数据与方法
+│   ├── size-check // 检测 Tree-Shaking 后的运行时大小
+│   ├── template-explorer
+│   └── vue // 用于构建，引用了 runtime 和 compiler
+```
+
+**runtime-core：**
+
+平台无关的运行时。包含 Virtual DOM 渲染器、Vue 组件、Vue 各 API 等
+
+**runtime-dom：**
+
+针对浏览器平台的运行时。包括操作 DOM 节点与属性、处理 DOM 事件等
+
+**reactivity：**
+
+数据响应式系统。独立的库，可以与其他框架配合使用。
+
+提供的 API 主要有：
+
+* ref 数据容器
+* reactive 基于 Proxy 实现的响应式系统
+* computed 计算数据
+* effect 副作用
+
+**shared：**
+
+框架内部共享的数据与方法。
+
 ## Status: Release Candidate
 
 - All planned RFCs have been merged.
