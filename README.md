@@ -1,4 +1,11 @@
-# vue-next [![beta](https://img.shields.io/npm/v/vue/next.svg)](https://www.npmjs.com/package/vue/v/next) [![CircleCI](https://circleci.com/gh/vuejs/vue-next.svg?style=svg&circle-token=fb883a2d0a73df46e80b2e79fd430959d8f2b488)](https://circleci.com/gh/vuejs/vue-next)
+# vue-wisdom
+
+## 本仓库的使用
+
+* 按照学习步骤，按顺序提交 `commit`，进行注解；
+* 除主干逻辑外，其他一些细节分支也会进行注解；
+* 会把综合性的源码解析、知识方案，发表到 `Issues`；
+* 每个月进行一次对 `vue-next` 的同步，确保即时性；
 
 ## Status: Release Candidate
 
