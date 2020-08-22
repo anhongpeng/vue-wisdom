@@ -369,6 +369,11 @@ export const setRef = (
  * })
  * ```
  */
+/**
+ * createRenderer 函数接收 2 个泛型参数：HostNode 和 HostElement，在宿主环境中
+ * 对应到节点和元素的类型。比如，对于 DOM 运行时环境，HostNode 就是 DOM `Node` interface
+ * 并且 HostElement 就是 DOM `Element` interface
+ */
 export function createRenderer<
   HostNode = RendererNode,
   HostElement = RendererElement
