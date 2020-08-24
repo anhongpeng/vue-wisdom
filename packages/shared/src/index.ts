@@ -37,6 +37,7 @@ export const NOOP = () => {}
  */
 export const NO = () => false
 
+// 判断传入值是否以 on 开头，后跟非小写字符。eg.isOn('onClick') // true
 const onRE = /^on[^a-z]/
 export const isOn = (key: string) => onRE.test(key)
 

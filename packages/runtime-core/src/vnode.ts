@@ -114,7 +114,7 @@ export interface VNode<
   /**
    * @internal
    */
-  __v_isVNode: true
+  __v_isVNode: true // 用来区分是否是 vnode
   /**
    * @internal
    */
@@ -236,6 +236,7 @@ export function createBlock(
   return vnode
 }
 
+// 通过判断传入的 .__v_isVNode 是否为 true，来区分是否是一个 vnode
 export function isVNode(value: any): value is VNode {
   return value ? value.__v_isVNode === true : false
 }
@@ -430,13 +431,16 @@ function _createVNode(
   return vnode
 }
 
+// 合并并标准化属性，克隆 vnode
 export function cloneVNode<T, U>(
   vnode: VNode<T, U>,
   extraProps?: Data & VNodeProps | null
 ): VNode<T, U> {
   // This is intentionally NOT using spread or extend to avoid the runtime
   // key enumeration cost.
+  // 这里故意没有使用解构赋值或者 extend 方法，是为了避免运行时属性枚举的开销
   const { props, patchFlag } = vnode
+  // 合并 extraProps 至 vnode.props
   const mergedProps = extraProps
     ? props
       ? mergeProps(props, extraProps)
@@ -591,18 +595,19 @@ export function normalizeChildren(vnode: VNode, children: unknown) {
   vnode.shapeFlag |= type
 }
 
+// 把 1 个或多个对象的 props，合并到传入的第一个对象中，并返回新的合并后对象（不影响旧对象）
 export function mergeProps(...args: (Data & VNodeProps)[]) {
-  const ret = extend({}, args[0])
-  for (let i = 1; i < args.length; i++) {
+  const ret = extend({}, args[0]) // 创建第一个参数对象的拷贝
+  for (let i = 1; i < args.length; i++) { // 遍历随后的 1 或多个参数对象
     const toMerge = args[i]
     for (const key in toMerge) {
-      if (key === 'class') {
+      if (key === 'class') { // 标准化 class 属性
         if (ret.class !== toMerge.class) {
           ret.class = normalizeClass([ret.class, toMerge.class])
         }
-      } else if (key === 'style') {
+      } else if (key === 'style') { // 标准化 style 属性
         ret.style = normalizeStyle([ret.style, toMerge.style])
-      } else if (isOn(key)) {
+      } else if (isOn(key)) { // 合并 onXxx 属性
         const existing = ret[key]
         const incoming = toMerge[key]
         if (existing !== incoming) {
