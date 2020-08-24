@@ -56,15 +56,16 @@ export function stringifyStyle(styles: NormalizedStyle | undefined): string {
   return ret
 }
 
+// 处理传入字符串、数组、对象 3 种情况，拼接 class 并进行 trim()
 export function normalizeClass(value: unknown): string {
   let res = ''
   if (isString(value)) {
     res = value
-  } else if (isArray(value)) {
+  } else if (isArray(value)) { // 数组情况下，遍历拼接 class
     for (let i = 0; i < value.length; i++) {
       res += normalizeClass(value[i]) + ' '
     }
-  } else if (isObject(value)) {
+  } else if (isObject(value)) { // 对象情况下，根据 key 的布尔情况进行拼接
     for (const name in value) {
       if (value[name]) {
         res += name + ' '
