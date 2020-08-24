@@ -58,6 +58,7 @@ export const hasOwn = (
   key: string | symbol
 ): key is keyof typeof val => hasOwnProperty.call(val, key)
 
+// 类型检测相关
 export const isArray = Array.isArray
 export const isDate = (val: unknown): val is Date => val instanceof Date
 export const isFunction = (val: unknown): val is Function =>
