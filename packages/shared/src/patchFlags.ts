@@ -77,6 +77,7 @@ export const enum PatchFlags {
 
   // Indicates a hoisted static vnode. This is a hint for hydration to skip
   // the entire sub tree since static content never needs to be updated.
+  // 静态节点，
   HOISTED = -1,
 
   // A special flag that indicates that the diffing algorithm should bail out

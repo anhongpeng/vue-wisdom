@@ -412,6 +412,7 @@ function baseCreateRenderer(
     initFeatureFlags()
   }
 
+  // 对象的解构赋值的内部机制，是先找到同名属性，然后再赋给对应的变量。真正被赋值的是后者
   const {
     insert: hostInsert,
     remove: hostRemove,
@@ -683,6 +684,11 @@ function baseCreateRenderer(
     }
   }
 
+  // 挂载元素
+  // 1.创建 DOM 元素节点
+  // 2.挂载其子节点
+  // 3.处理 props
+  // 4.挂载该 DOM 元素至 Container 上
   const mountElement = (
     vnode: VNode,
     container: RendererElement,
@@ -713,9 +719,13 @@ function baseCreateRenderer(
       // Only static vnodes can be reused, so its mounted DOM nodes should be
       // exactly the same, and we can simply do a clone here.
       // only do this in production since cloned trees cannot be HMR updated.
+      // 如果一个 VNode 有非 null 的 el 属性，那么意味着它会被重用
+      // 只有静态节点会被重用，因此它的挂载的 DOM 节点也是相同的，所以这里可以简单地进行 clone
+      // 由于 clone 的 tree 无法支持 HMR 更新，因此该优化仅在生产环境下生效
       el = vnode.el = hostCloneNode(vnode.el)
     } else {
-      el = vnode.el = hostCreateElement(
+      // 创建宿主环境下的 DOM 元素节点
+      el = vnode.el = hostCreateElement( // 在其中调用 document.createElement()
         vnode.type as string,
         isSVG,
         props && props.is
@@ -723,9 +733,12 @@ function baseCreateRenderer(
 
       // mount children first, since some props may rely on child content
       // being already rendered, e.g. `<select value>`
-      if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
+      // 先挂载子节点：因为一些 props 需要依赖已渲染的子节点内容（比如 <select value>）
+      if (shapeFlag & ShapeFlags.TEXT_CHILDREN) { // 文本子节点
+        // 处理子节点是纯文本的情况
         hostSetElementText(el, vnode.children as string)
-      } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+      } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) { // 数组子节点
+        // 处理子节点是数组的情况
         mountChildren(
           vnode.children as VNodeArrayChildren,
           el,
@@ -739,6 +752,7 @@ function baseCreateRenderer(
 
       // props
       if (props) {
+        // 处理 props，比如 class、style、event 等属性
         for (const key in props) {
           if (!isReservedProp(key)) {
             hostPatchProp(
@@ -782,6 +796,8 @@ function baseCreateRenderer(
     if (needCallTransitionHooks) {
       transition!.beforeEnter(el)
     }
+    // 把创建的 DOM 元素节点挂载到 container 上
+    // 其中会调用 container.insertBefore(el, anchor || null)
     hostInsert(el, container, anchor)
     if (
       (vnodeHook = props && props.onVnodeMounted) ||
