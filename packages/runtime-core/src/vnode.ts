@@ -320,6 +320,7 @@ function _createVNode(
   if (isVNode(type)) {
     const cloned = cloneVNode(type, props)
     if (children) {
+      // 标准化子节点，把不同数据类型的 children 转成数组或文本
       normalizeChildren(cloned, children)
     }
     return cloned
@@ -377,6 +378,7 @@ function _createVNode(
     )
   }
 
+  // 创建 VNode 对象
   const vnode: VNode = {
     __v_isVNode: true,
     __v_skip: true,
