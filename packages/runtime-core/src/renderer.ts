@@ -655,10 +655,11 @@ function baseCreateRenderer(
     hostRemove(vnode.anchor!)
   }
 
+  // 处理普通 DOM 元素
   const processElement = (
-    n1: VNode | null,
-    n2: VNode,
-    container: RendererElement,
+    n1: VNode | null, // 旧节点
+    n2: VNode, // 新节点
+    container: RendererElement, // 挂在至的 DOM 容器
     anchor: RendererNode | null,
     parentComponent: ComponentInternalInstance | null,
     parentSuspense: SuspenseBoundary | null,
@@ -666,17 +667,18 @@ function baseCreateRenderer(
     optimized: boolean
   ) => {
     isSVG = isSVG || (n2.type as string) === 'svg'
-    if (n1 == null) {
+    if (n1 == null) { // 如果没有旧节点 n1，走挂载元素流程
+      // 挂载元素
       mountElement(
-        n2,
-        container,
+        n2, // 新节点
+        container, // 挂在至的 DOM 容器
         anchor,
         parentComponent,
         parentSuspense,
         isSVG,
         optimized
       )
-    } else {
+    } else { // 否则走更新元素流程
       patchElement(n1, n2, parentComponent, parentSuspense, isSVG, optimized)
     }
   }
