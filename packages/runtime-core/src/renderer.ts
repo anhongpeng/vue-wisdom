@@ -541,6 +541,8 @@ function baseCreateRenderer(
     }
 
     // set ref
+    // 每次 patch 都要重新设置 ref，这也就是为什么在编译阶段不对含有 ref 的节点进行提升的原因
+    // 因为 ref 是当作动态属性来看待的
     if (ref != null && parentComponent) {
       setRef(ref, n1 && n1.ref, parentComponent, parentSuspense, n2)
     }
@@ -1137,10 +1139,11 @@ function baseCreateRenderer(
     }
   }
 
+  // 处理组件：如果没有 n1 旧组件，则执行组件的挂载逻辑，否则执行组件的更新逻辑
   const processComponent = (
-    n1: VNode | null,
-    n2: VNode,
-    container: RendererElement,
+    n1: VNode | null, // 旧组件
+    n2: VNode, // 新组件
+    container: RendererElement, // 挂载组件的 DOM 容器
     anchor: RendererNode | null,
     parentComponent: ComponentInternalInstance | null,
     parentSuspense: SuspenseBoundary | null,
@@ -1157,6 +1160,7 @@ function baseCreateRenderer(
           optimized
         )
       } else {
+        // 挂载组件
         mountComponent(
           n2,
           container,
@@ -1212,6 +1216,7 @@ function baseCreateRenderer(
       startMeasure(instance, `init`)
     }
     // 职责2：设置组件实例
+    // instance 保留了很多组件相关的数据，维护了组件上下文，包括对 props、插槽以及其他实例的属性的初始化处理
     setupComponent(instance)
     if (__DEV__) {
       endMeasure(instance, `init`)
@@ -1303,7 +1308,10 @@ function baseCreateRenderer(
     //   1.初始渲染：
     //     （1）渲染组件生成 subTree
     //     （2）把 subTree 挂载到 container 中
+    // 利用响应式库的 effect() 函数创建了一个副作用渲染函数 componentEffect()
+    // 副作用：当组件的数据发生变化时，effect 函数包裹的 componentEffect() 函数会重新执行一遍，从而重新渲染组件
     instance.update = effect(function componentEffect() {
+      // 渲染函数内部会判断是「初始渲染」还是还是「组件更新」
       if (!instance.isMounted) { // 初始渲染
         let vnodeHook: VNodeHook | null | undefined
         const { el, props } = initialVNode
@@ -1311,7 +1319,8 @@ function baseCreateRenderer(
         if (__DEV__) {
           startMeasure(instance, `render`)
         }
-        // 渲染组件生成子树 vnode
+        // 渲染组件生成子树 subTree，它也是一个 VNode 对象
+        // renderComponentRoot() 执行 render 函数创建整个组件树内部的 vnode，把这个 vnode 经过内部一层标准化，最终得到子树 VNode
         const subTree = (instance.subTree = renderComponentRoot(instance))
         if (__DEV__) {
           endMeasure(instance, `render`)
@@ -1344,9 +1353,9 @@ function baseCreateRenderer(
           }
           // 把子树 vnode 挂载到 container 中
           patch(
-            null,
-            subTree,
-            container,
+            null, // n1 旧组件传 null，则是挂载
+            subTree, // n2 为要挂载的 subTree
+            container, // 挂载至的 DOM 容器
             anchor,
             instance,
             parentSuspense,

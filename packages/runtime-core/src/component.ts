@@ -348,6 +348,7 @@ export function createComponentInstance(
   const appContext =
     (parent ? parent.appContext : vnode.appContext) || emptyAppContext
 
+  // 不同于 Vue2 中使用类，Vue3 使用对象的方式创建了当前渲染的组件实例
   const instance: ComponentInternalInstance = {
     uid: uid++,
     vnode,
@@ -388,7 +389,7 @@ export function createComponentInstance(
     isDeactivated: false,
     bc: null,
     c: null,
-    bm: null,
+    bm: null, // beforeMount 钩子
     m: null,
     bu: null,
     u: null,
