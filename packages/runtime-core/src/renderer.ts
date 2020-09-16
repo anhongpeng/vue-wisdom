@@ -432,17 +432,13 @@ function baseCreateRenderer(
   // Note: functions inside this closure should use `const xxx = () => {}`
   // style in order to prevent being inlined by minifiers.
   // patch - 打补丁
-  // 参数：
-  //   n1：旧的 vnode，当 n1 为 null 时，表示这是挂载过程
-  //   n2：新的 vnode，类型不同，后续的执行逻辑也不同
-  //   container：DOM 容器，vnode 渲染成 DOM 后，会挂载到 container 下
   // 职责：
   //   1.根据 vnode 挂载 DOM
   //   2.根据新旧 vnode 更新 DOM
   const patch: PatchFn = (
-    n1,
-    n2,
-    container,
+    n1, // 旧的 vnode，当 n1 为 null 时，表示这是挂载过程
+    n2, // 新的 vnode，类型不同，后续的执行逻辑也不同
+    container, // DOM 容器，VNode 渲染生成 DOM 后，会挂载到 container 下
     anchor = null,
     parentComponent = null,
     parentSuspense = null,
@@ -457,12 +453,14 @@ function baseCreateRenderer(
       n1 = null
     }
 
+    // BAIL 不做 Diff 优化
     if (n2.patchFlag === PatchFlags.BAIL) {
       optimized = false
       n2.dynamicChildren = null
     }
 
     const { type, ref, shapeFlag } = n2
+    // 新节点的类型不同，处理流程也不同
     switch (type) {
       case Text: // 处理文本节点
         processText(n1, n2, container, anchor)
@@ -489,9 +487,9 @@ function baseCreateRenderer(
           optimized
         )
         break
-      default:
+      default: // 可以性能优化的处理流程
         // 按位操作符 - 按位与，a & b：对于每一个比特位，只有两个操作数相应的比特位都是 1 时，结果才为 1，否则为 0
-        if (shapeFlag & ShapeFlags.ELEMENT) {
+        if (shapeFlag & ShapeFlags.ELEMENT) { // 处理普通 DOM 元素 - 重点关注
           processElement(
             n1,
             n2,
@@ -502,7 +500,7 @@ function baseCreateRenderer(
             isSVG,
             optimized
           )
-        } else if (shapeFlag & ShapeFlags.COMPONENT) { // 处理组件类型
+        } else if (shapeFlag & ShapeFlags.COMPONENT) { // 处理组件 - 重点关注
           processComponent(
             n1,
             n2,
@@ -513,7 +511,7 @@ function baseCreateRenderer(
             isSVG,
             optimized
           )
-        } else if (shapeFlag & ShapeFlags.TELEPORT) {
+        } else if (shapeFlag & ShapeFlags.TELEPORT) { // 处理 TELEPORT
           ;(type as typeof TeleportImpl).process(
             n1 as TeleportVNode,
             n2 as TeleportVNode,
@@ -525,7 +523,7 @@ function baseCreateRenderer(
             optimized,
             internals
           )
-        } else if (__FEATURE_SUSPENSE__ && shapeFlag & ShapeFlags.SUSPENSE) {
+        } else if (__FEATURE_SUSPENSE__ && shapeFlag & ShapeFlags.SUSPENSE) { // 处理 SUSPENSE
           ;(type as typeof SuspenseImpl).process(
             n1,
             n2,

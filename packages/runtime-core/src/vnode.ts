@@ -138,6 +138,7 @@ export interface VNode<
   staticCount: number // number of elements contained in a static vnode
 
   // optimization only
+  // 仅服务于性能优化
   shapeFlag: number
   patchFlag: number
   dynamicProps: string[] | null
@@ -241,6 +242,7 @@ export function isVNode(value: any): value is VNode {
   return value ? value.__v_isVNode === true : false
 }
 
+// 判断是否是相同 VNode 类型
 export function isSameVNodeType(n1: VNode, n2: VNode): boolean {
   if (
     __DEV__ &&
