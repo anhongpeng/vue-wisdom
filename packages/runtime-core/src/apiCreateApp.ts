@@ -206,7 +206,8 @@ export function createAppAPI<HostElement>(
         return app
       },
 
-      // 参数：rootContainer 可以是不同类型的值，在 Web 平台下是一个 DOM 对象，在其他平台（e.g. weex 和小程序）中可以是其他类型值
+      // 参数：rootContainer 可以是不同类型的值，在 Web 平台下是一个 DOM 对象，在其他平台（e.g. weex 和小程序）中可以是其他类型值、
+      // 这是一个可跨平台的组件渲染流程
       mount(rootContainer: HostElement, isHydrate?: boolean): any {
         if (!isMounted) { // 若未挂载
           // 创建根组件的 vnode

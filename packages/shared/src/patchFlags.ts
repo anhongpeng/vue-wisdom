@@ -13,12 +13,14 @@
 // Check the `patchElement` function in './renderer.ts' to see how the
 // flags are handled during diff.
 
+// 作用：用来标记需要更新的节点。动态更新过程中，判断当前 Dom 节点是否有此标记，如果有，就 update 该节点，如果没有，就忽略不更新。
+//   从而把性能损耗降到最低。在拥有大量静态节点的 Dom 结构里，性能提升更显著。
 export const enum PatchFlags {
   // Indicates an element with dynamic textContent (children fast path)
-  TEXT = 1,
+  TEXT = 1, // 表示有动态 textContent 的元素（插值生成的动态文本节点）
 
   // Indicates an element with dynamic class binding.
-  CLASS = 1 << 1,
+  CLASS = 1 << 1, // 表示有动态 Class 的元素
 
   // Indicates an element with dynamic style
   // The compiler pre-compiles static string styles into static objects
@@ -26,13 +28,15 @@ export const enum PatchFlags {
   // e.g. style="color: red" and :style="{ color: 'red' }" both get hoisted as
   //   const style = { color: 'red' }
   //   render() { return e('div', { style }) }
-  STYLE = 1 << 2,
+  STYLE = 1 << 2, // 表示有动态样式的元素
 
   // Indicates an element that has non-class/style dynamic props.
   // Can also be on a component that has any dynamic props (includes
   // class/style). when this flag is present, the vnode also has a dynamicProps
   // array that contains the keys of the props that may change so the runtime
   // can diff them faster (without having to worry about removed props)
+  // 表示包含除 class、style 之外的动态属性的元素
+  // 也可以是包含动态属性（含 class、style）的组件
   PROPS = 1 << 3,
 
   // Indicates an element with props with dynamic keys. When keys change, a full
@@ -42,10 +46,10 @@ export const enum PatchFlags {
 
   // Indicates an element with event listeners (which need to be attached
   // during hydration)
-  HYDRATE_EVENTS = 1 << 5,
+  HYDRATE_EVENTS = 1 << 5, // 表示有事件监听器的元素
 
   // Indicates a fragment whose children order doesn't change.
-  STABLE_FRAGMENT = 1 << 6,
+  STABLE_FRAGMENT = 1 << 6, // 表示子节点顺序不变的 fragment
 
   // Indicates a fragment with keyed or partially keyed children
   KEYED_FRAGMENT = 1 << 7,
