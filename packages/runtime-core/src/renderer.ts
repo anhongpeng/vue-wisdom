@@ -413,6 +413,7 @@ function baseCreateRenderer(
   }
 
   // 对象的解构赋值的内部机制，是先找到同名属性，然后再赋给对应的变量。真正被赋值的是后者
+  // 这些平台相关的方法是在创建渲染器阶段作为参数传入的
   const {
     insert: hostInsert,
     remove: hostRemove,
@@ -724,7 +725,7 @@ function baseCreateRenderer(
       // 由于 clone 的 tree 无法支持 HMR 更新，因此该优化仅在生产环境下生效
       el = vnode.el = hostCloneNode(vnode.el)
     } else {
-      // 创建宿主环境下的 DOM 元素节点
+      // 1.创建宿主环境下的 DOM 元素节点（平台相关 - Web 环境）
       el = vnode.el = hostCreateElement( // 在其中调用 document.createElement()
         vnode.type as string,
         isSVG,
@@ -733,15 +734,15 @@ function baseCreateRenderer(
 
       // mount children first, since some props may rely on child content
       // being already rendered, e.g. `<select value>`
-      // 先挂载子节点：因为一些 props 需要依赖已渲染的子节点内容（比如 <select value>）
+      // 2.先挂载子节点：因为一些 props 需要依赖已渲染的子节点内容（比如 <select value>）
       if (shapeFlag & ShapeFlags.TEXT_CHILDREN) { // 文本子节点
-        // 处理子节点是纯文本的情况
+        // 处理子节点是纯文本的情况（内部调用 DOM API el.textContent = vnode.children）
         hostSetElementText(el, vnode.children as string)
       } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) { // 数组子节点
         // 处理子节点是数组的情况
         mountChildren(
-          vnode.children as VNodeArrayChildren,
-          el,
+          vnode.children as VNodeArrayChildren, // 要进行遍历去挂载的数组子节点
+          el, // 作为数组子节点要挂载至的 DOM 容器
           null,
           parentComponent,
           parentSuspense,
@@ -752,7 +753,7 @@ function baseCreateRenderer(
 
       // props
       if (props) {
-        // 处理 props，比如 class、style、event 等属性
+        // 3.处理 props，如果有 props，给这个 DOM 节点添加相关的 class、style、event 等属性，并做相应处理
         for (const key in props) {
           if (!isReservedProp(key)) {
             hostPatchProp(
@@ -796,8 +797,8 @@ function baseCreateRenderer(
     if (needCallTransitionHooks) {
       transition!.beforeEnter(el)
     }
-    // 把创建的 DOM 元素节点挂载到 container 上
-    // 其中会调用 container.insertBefore(el, anchor || null)
+    // 4.把创建的 DOM 元素节点挂载到 container 上
+    // 其中会调用 DOM API container.insertBefore(el, anchor || null)
     hostInsert(el, container, anchor)
     if (
       (vnodeHook = props && props.onVnodeMounted) ||
@@ -812,9 +813,10 @@ function baseCreateRenderer(
     }
   }
 
+  // 挂载数组子节点：遍历 children 获取到每一个 child，然后递归执行 patch() 方法挂载每一个 child 
   const mountChildren: MountChildrenFn = (
     children,
-    container,
+    container, // 要挂载至的 DOM 容器
     anchor,
     parentComponent,
     parentSuspense,
@@ -823,9 +825,12 @@ function baseCreateRenderer(
     start = 0
   ) => {
     for (let i = start; i < children.length; i++) {
+      // 预处理 child（编译优化）
       const child = (children[i] = optimized
         ? cloneIfMounted(children[i] as VNode)
         : normalizeVNode(children[i]))
+
+      // 递归 patch 挂载 DOM（深度优先遍历树）
       patch(
         null,
         child,
