@@ -82,7 +82,9 @@ export const createApp = ((...args) => {
     // 挂载前清空容器内容
     container.innerHTML = ''
     const proxy = mount(container) // 真正的挂载
+    // DOM API Element.removeAttribute() | MDN：https://developer.mozilla.org/zh-CN/docs/Web/API/Element/removeAttribute
     container.removeAttribute('v-cloak')
+    // DOM API Element.setAttribute() | MDN：https://developer.mozilla.org/zh-CN/docs/Web/API/Element/setAttribute
     container.setAttribute('data-v-app', '')
     return proxy
   }
