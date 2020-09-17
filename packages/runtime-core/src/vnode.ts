@@ -304,6 +304,11 @@ export const createVNode = (__DEV__
   ? createVNodeWithArgsTransform
   : _createVNode) as typeof _createVNode
 
+// 创建 VNode
+// 1.处理 props，标准化 class 和 style 属性；
+// 2.对 VNode 类型打标记，shapeFlags 使用了「位操作」，可组合；
+// 3.创建 VNode 对象；
+// 4.标准化子节点，并返回创建的 VNode；
 function _createVNode(
   type: VNodeTypes | ClassComponent | typeof NULL_DYNAMIC_COMPONENT,
   props: (Data & VNodeProps) | null = null,
@@ -334,7 +339,7 @@ function _createVNode(
   }
 
   // class & style normalization.
-  // 处理 props 相关逻辑，标准化 class 和 style
+  // 1.处理 props 相关逻辑，标准化 class 和 style
   if (props) {
     // for reactive or proxy objects, we need to clone it to enable mutation.
     if (isProxy(props) || InternalObjectKey in props) {
