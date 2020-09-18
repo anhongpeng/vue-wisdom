@@ -9,7 +9,7 @@ let tempSVGContainer: SVGElement
 
 export const nodeOps: Omit<RendererOptions<Node, Element>, 'patchProp'> = {
   insert: (child, parent, anchor) => {
-    // Node.insertBefore() | MDN：https://developer.mozilla.org/zh-CN/docs/Web/API/Node/insertBefore
+    // DOM API Node.insertBefore() | MDN：https://developer.mozilla.org/zh-CN/docs/Web/API/Node/insertBefore
     parent.insertBefore(child, anchor || null)
   },
 
@@ -20,7 +20,7 @@ export const nodeOps: Omit<RendererOptions<Node, Element>, 'patchProp'> = {
     }
   },
 
-  // createElement | MDN：https://developer.mozilla.org/zh-CN/docs/Web/API/Document/createElement
+  // DOM API createElement | MDN：https://developer.mozilla.org/zh-CN/docs/Web/API/Document/createElement
   createElement: (tag, isSVG, is): Element =>
     isSVG
       ? doc.createElementNS(svgNS, tag)
