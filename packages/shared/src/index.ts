@@ -43,7 +43,7 @@ export const isOn = (key: string) => onRE.test(key)
 
 export const isModelListener = (key: string) => key.startsWith('onUpdate:')
 
-export const extend = Object.assign
+export const extend = Object.assign // 对象属性的拷贝
 
 export const remove = <T>(arr: T[], el: T) => {
   const i = arr.indexOf(el)

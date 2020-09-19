@@ -461,7 +461,7 @@ function baseCreateRenderer(
       n2.dynamicChildren = null
     }
 
-    const { type, ref, shapeFlag } = n2
+    const { type, ref, shapeFlag } = n2 // 新节点
     // 新节点的类型不同，处理流程也不同
     switch (type) {
       case Text: // 处理文本节点
@@ -493,9 +493,9 @@ function baseCreateRenderer(
         // 按位操作符 - 按位与，a & b：对于每一个比特位，只有两个操作数相应的比特位都是 1 时，结果才为 1，否则为 0
         if (shapeFlag & ShapeFlags.ELEMENT) { // 处理普通 DOM 元素 - 重点关注
           processElement(
-            n1,
-            n2,
-            container,
+            n1, // 旧节点
+            n2, // 新节点
+            container, // 挂载至的 DOM 容器
             anchor,
             parentComponent,
             parentSuspense,

@@ -21,7 +21,7 @@ declare module '@vue/reactivity' {
   }
 }
 
-// 渲染相关的配置，如更新属性的方法、操作 DOM 的方法
+// 渲染相关的配置，含操作 DOM 的方法
 const rendererOptions = extend({ patchProp, forcePatchProp }, nodeOps)
 
 // lazy create the renderer - this makes core renderer logic tree-shakable
@@ -54,7 +54,7 @@ export const hydrate = ((...args) => {
 }) as RootHydrateFunction
 
 export const createApp = ((...args) => {
-  // 创建 app 对象
+  // 创建 app 实例：先得到渲染器 renderer，再用渲染器创建 app 实例
   const app = ensureRenderer().createApp(...args)
 
   if (__DEV__) {
