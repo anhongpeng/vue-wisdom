@@ -1419,9 +1419,9 @@ function baseCreateRenderer(
         instance.isMounted = true
       } else {
         // 组件更新：
-        //   1.更新组件的 VNode 节点
-        //   2.渲染新的子树 VNode
-        //   3.根据新旧子树 VNode 执行 patch 逻辑
+        //   1.更新组件的 VNode 节点信息（通过执行 updateComponentPreRender）
+        //   2.渲染新的子树 VNode（通过执行 renderComponentRoot）
+        //   3.根据新旧子树 VNode 执行 patch 逻辑（通过执行 patch）
         // updateComponent
         // This is triggered by mutation of component's own state (next: null)
         // OR parent calling processComponent (next: VNode)
@@ -1434,6 +1434,10 @@ function baseCreateRenderer(
         }
 
         // next 表示新组件的 VNode
+        // 一个组件重新渲染可能会有 2 种场景：
+        //   一种是组件本身的数据变化，这种情况下 next 是 null
+        //   另一种是父组件在更新过程中，遇到子组件节点。先判断子组件是否需要更新，如果需要则主动执行子组件的重新渲染方法，这种情况下
+        // next 就是新的子组件 VNode
         if (next) {
           // 更新组件 VNode 节点信息
           updateComponentPreRender(instance, next, optimized)
@@ -1519,6 +1523,7 @@ function baseCreateRenderer(
     ;(instance.update as SchedulerJob).allowRecurse = true
   }
 
+  // 在更新组件的 DOM 前，需要先更新组件 vnode 节点信息，包括改组件实例的 vnode 指针、更新 props 和更新插槽等
   const updateComponentPreRender = (
     instance: ComponentInternalInstance,
     nextVNode: VNode,
@@ -1527,11 +1532,17 @@ function baseCreateRenderer(
     if (__DEV__ && instance.type.__hmrId) {
       optimized = false
     }
+    // 新组件 VNode 的 component 指向组件实例
     nextVNode.component = instance
+    // 缓存旧组件 VNode 的 props
     const prevProps = instance.vnode.props
+    // 组件实例的 VNode 指向指向新组件 VNode
     instance.vnode = nextVNode
+    // 清空 next 属性，为下一次重新渲染做准备
     instance.next = null
+    // 更新 props
     updateProps(instance, nextVNode.props, prevProps, optimized)
+    // 更新 插槽
     updateSlots(instance, nextVNode.children)
 
     // props update may have triggered pre-flush watchers.
