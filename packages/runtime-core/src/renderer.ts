@@ -435,8 +435,8 @@ function baseCreateRenderer(
   // style in order to prevent being inlined by minifiers.
   // patch - 打补丁
   // 职责：
-  //   1.根据 vnode 挂载 DOM
-  //   2.根据新旧 vnode 更新 DOM
+  //   1.先判断新旧节点是否是相同的 VNode 类型，若不是，则删除旧节点，挂载新节点
+  //   2.如果是相同的 VNode 类型，走 Diff 更新流程，VNode 类型不同处理逻辑也不同
   const patch: PatchFn = (
     n1, // 旧的 vnode，当 n1 为 null 时，表示这是挂载过程
     n2, // 新的 vnode，类型不同，后续的执行逻辑也不同
@@ -452,6 +452,7 @@ function baseCreateRenderer(
     if (n1 && !isSameVNodeType(n1, n2)) {
       anchor = getNextHostNode(n1)
       unmount(n1, parentComponent, parentSuspense, true)
+      // n1 设置为 null，确保后续都走 mount 逻辑
       n1 = null
     }
 
@@ -1280,8 +1281,11 @@ function baseCreateRenderer(
     }
   }
 
+  // 虽然 Vue.js 的更新粒度是组件级别的，组件的数据变化只会影响当前组件的更新，但是在组件更新的过程中，也会对子组件做一定的检查，
+  // 判断子组件是否也要更新，并通过某种机制避免子组件重复更新
   const updateComponent = (n1: VNode, n2: VNode, optimized: boolean) => {
     const instance = (n2.component = n1.component)!
+    // 根据新旧组件 VNode 来判断是否需要更新组件（主要通过对比 VNode 中的 props、children、dirs、transition 等属性）
     if (shouldUpdateComponent(n1, n2, optimized)) {
       if (
         __FEATURE_SUSPENSE__ &&
@@ -1303,12 +1307,14 @@ function baseCreateRenderer(
         instance.next = n2
         // in case the child component is also queued, remove it to avoid
         // double updating the same child component in the same flush.
+        // 避免子组件由于自身数据变化导致的重复更新
         invalidateJob(instance.update)
         // instance.update is the reactive effect runner.
         instance.update()
       }
     } else {
       // no update needed. just copy over properties
+      // 不需要更新，只需要复制属性
       n2.component = n1.component
       n2.el = n1.el
       instance.vnode = n2

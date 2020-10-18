@@ -194,6 +194,7 @@ export interface ComponentInternalInstance {
   /**
    * Root vnode of this component's own vdom tree
    */
+  // 该组件自己 VDOM 树的根节点
   subTree: VNode
   /**
    * The reactive effect for rendering and patching the component. Callable.
