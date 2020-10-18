@@ -1411,7 +1411,11 @@ function baseCreateRenderer(
           queuePostRenderEffect(a, parentSuspense)
         }
         instance.isMounted = true
-      } else { // 组件更新
+      } else {
+        // 组件更新：
+        //   1.更新组件的 VNode 节点
+        //   2.渲染新的子树 VNode
+        //   3.根据新旧子树 VNode 执行 patch 逻辑
         // updateComponent
         // This is triggered by mutation of component's own state (next: null)
         // OR parent calling processComponent (next: VNode)
@@ -1425,6 +1429,7 @@ function baseCreateRenderer(
 
         // next 表示新组件的 VNode
         if (next) {
+          // 更新组件 VNode 节点信息
           updateComponentPreRender(instance, next, optimized)
         } else {
           next = vnode
@@ -1432,11 +1437,14 @@ function baseCreateRenderer(
         if (__DEV__) {
           startMeasure(instance, `render`)
         }
+        // 渲染新的子树 VNode
         const nextTree = renderComponentRoot(instance)
         if (__DEV__) {
           endMeasure(instance, `render`)
         }
+        // 缓存旧的子树 VNode
         const prevTree = instance.subTree
+        // 更新子树 VNode
         instance.subTree = nextTree
         next.el = vnode.el
         // beforeUpdate hook
@@ -1455,12 +1463,15 @@ function baseCreateRenderer(
         if (__DEV__) {
           startMeasure(instance, `patch`)
         }
+        // 组件更新核心逻辑，根据新旧子树 VNode 做 patch。找出新旧子树 VNode 的不同，并用合适的方式更新 DOM
         patch(
           prevTree,
           nextTree,
           // parent may have changed if it's in a teleport
+          // Teleport 组件中父节点可能已改变，所以容器直接找旧树 DOM 元素的父节点
           hostParentNode(prevTree.el!)!,
           // anchor may have changed if it's in a fragment
+          // Fragment 情况下参考节点可能已改变，所以直接找旧树 DOM 元素的下一个节点
           getNextHostNode(prevTree),
           instance,
           parentSuspense,
@@ -1469,6 +1480,8 @@ function baseCreateRenderer(
         if (__DEV__) {
           endMeasure(instance, `patch`)
         }
+        
+        // 缓存更新后的 DOM 节点
         next.el = nextTree.el
         if (originNext === null) {
           // self-triggered update. In case of HOC, update parent component
