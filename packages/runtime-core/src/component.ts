@@ -130,6 +130,7 @@ export { ComponentOptions }
 
 type LifecycleHook = Function[] | null
 
+// 生命周期钩子
 export const enum LifecycleHooks {
   BEFORE_CREATE = 'bc',
   CREATED = 'c',
@@ -172,6 +173,7 @@ export type InternalRenderFunction = {
  * We expose a subset of properties on the internal instance as they are
  * useful for advanced external libraries and tools.
  */
+// 我们暴露一个内部实例属性的子集，这对于衔接外部库和工具十分有用
 export interface ComponentInternalInstance {
   uid: number
   type: Component
@@ -181,11 +183,13 @@ export interface ComponentInternalInstance {
   /**
    * Vnode representing this component in its parent's vdom tree
    */
+  // 用于表示当前组件的 VNode，存在于父级的 VDOM 树中
   vnode: VNode
   /**
    * The pending new vnode from parent updates
    * @internal
    */
+  // 父级更新时，待决定要去更新的新 Vnode 节点
   next: VNode | null
   /**
    * Root vnode of this component's own vdom tree

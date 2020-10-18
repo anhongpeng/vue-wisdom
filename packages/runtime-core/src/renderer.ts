@@ -1205,8 +1205,8 @@ function baseCreateRenderer(
   //   2.设置组件实例：instance 存着组件相关数据，维护了组件上下文。设置以进行对 props、插槽及其他实例属性的初始化处理
   //   3.设置并运行带副作用的渲染函数
   const mountComponent: MountComponentFn = (
-    initialVNode,
-    container,
+    initialVNode, // 要挂载的组件
+    container, // 挂载组件的 DOM 容器
     anchor,
     parentComponent,
     parentSuspense,
@@ -1317,9 +1317,9 @@ function baseCreateRenderer(
 
   // 设置并运行带副作用的渲染函数
   const setupRenderEffect: SetupRenderEffectFn = (
-    instance,
-    initialVNode,
-    container,
+    instance, // 组件实例
+    initialVNode, // 要挂载的组件
+    container, // 挂载组件的 DOM 容器
     anchor,
     parentSuspense,
     isSVG,
@@ -1334,7 +1334,7 @@ function baseCreateRenderer(
     // 利用响应式库的 effect() 函数创建了一个副作用渲染函数 componentEffect()
     // 副作用：当组件的数据发生变化时，effect 函数包裹的 componentEffect() 函数会重新执行一遍，从而重新渲染组件
     instance.update = effect(function componentEffect() {
-      // 渲染函数内部会判断是「初始渲染」还是还是「组件更新」
+      // 判断是「初始渲染」还是还是「组件更新」
       if (!instance.isMounted) { // 初始渲染
         let vnodeHook: VNodeHook | null | undefined
         const { el, props } = initialVNode
@@ -1415,6 +1415,7 @@ function baseCreateRenderer(
         // updateComponent
         // This is triggered by mutation of component's own state (next: null)
         // OR parent calling processComponent (next: VNode)
+        // 组件自身状态的改变（next: null）或者父级调用 processComponent（next: VNode）都会触发组件更新
         let { next, bu, u, parent, vnode } = instance
         let originNext = next
         let vnodeHook: VNodeHook | null | undefined
@@ -1422,6 +1423,7 @@ function baseCreateRenderer(
           pushWarningContext(next || instance.vnode)
         }
 
+        // next 表示新组件的 VNode
         if (next) {
           updateComponentPreRender(instance, next, optimized)
         } else {
