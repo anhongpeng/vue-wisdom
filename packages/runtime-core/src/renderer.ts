@@ -1726,30 +1726,41 @@ function baseCreateRenderer(
   }
 
   // can be all-keyed or mixed
+  // 核心 Diff 算法
+  // 对于旧子节点数组的变化，节点操作离不开 4 种：新增、删除、移动、更新
+  // 已知：
+  //   1.旧子节点的 DOM 结构
+  //   2.旧子节点 VNode
+  //   3.新子节点 VNode
+  // 目的：以较低成本完成子节点的更新
   const patchKeyedChildren = (
-    c1: VNode[],
-    c2: VNodeArrayChildren,
-    container: RendererElement,
+    c1: VNode[], // 旧子节点数组
+    c2: VNodeArrayChildren, // 新子节点数组
+    container: RendererElement, // 父容器 DOM
     parentAnchor: RendererNode | null,
     parentComponent: ComponentInternalInstance | null,
     parentSuspense: SuspenseBoundary | null,
     isSVG: boolean,
     optimized: boolean
   ) => {
-    let i = 0
-    const l2 = c2.length
-    let e1 = c1.length - 1 // prev ending index
-    let e2 = l2 - 1 // next ending index
+    let i = 0 // 头部的索引
+    const l2 = c2.length // 新子节点个数
+    let e1 = c1.length - 1 // prev ending index 旧子节点的尾部索引
+    let e2 = l2 - 1 // next ending index 新子节点的尾部索引
 
     // 1. sync from start
+    // 同步头部节点：从头部开始，依次对比新旧节点类型：
+    //   若相同，则递归 patch 更新节点
+    //   若不同，或者索引 i 大于索引 e1 或 e2，则同步过程结束
+    // 初始时： i = 0，e1 = 2，e2 = 3
     // (a b) c
     // (a b) d e
     while (i <= e1 && i <= e2) {
-      const n1 = c1[i]
-      const n2 = (c2[i] = optimized
+      const n1 = c1[i] // 当前遍历的旧子节点
+      const n2 = (c2[i] = optimized // // 当前遍历的新子节点
         ? cloneIfMounted(c2[i] as VNode)
         : normalizeVNode(c2[i]))
-      if (isSameVNodeType(n1, n2)) {
+      if (isSameVNodeType(n1, n2)) { // 若 n1、n2 类型相同，递归执行 patch() 做更新
         patch(
           n1,
           n2,
@@ -1765,6 +1776,7 @@ function baseCreateRenderer(
       }
       i++
     }
+    // 同步头部节点后：i = 2，e1 = 2，e2 = 3
 
     // 2. sync from end
     // a (b c)
