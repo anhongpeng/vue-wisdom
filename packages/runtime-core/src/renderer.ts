@@ -1733,6 +1733,7 @@ function baseCreateRenderer(
   //   2.旧子节点 VNode
   //   3.新子节点 VNode
   // 目的：以较低成本完成子节点的更新
+  // 算法中持续维护着：待遍历索引 i、旧子节点的尾部索引 e1、新子节点的尾部索引 e2
   const patchKeyedChildren = (
     c1: VNode[], // 旧子节点数组
     c2: VNodeArrayChildren, // 新子节点数组
@@ -1743,7 +1744,7 @@ function baseCreateRenderer(
     isSVG: boolean,
     optimized: boolean
   ) => {
-    let i = 0 // 头部的索引
+    let i = 0 // 待遍历索引
     const l2 = c2.length // 新子节点个数
     let e1 = c1.length - 1 // prev ending index 旧子节点的尾部索引
     let e2 = l2 - 1 // next ending index 新子节点的尾部索引
@@ -1776,17 +1777,19 @@ function baseCreateRenderer(
       }
       i++
     }
-    // 同步头部节点后：i = 2，e1 = 2，e2 = 3
 
     // 2. sync from end
+    // 同步尾部节点：从尾部开始，依次对比新旧节点类型：
+    //   若相同，则递归 patch 更新节点
+    //   若不同，或者索引 i 大于索引 e1 或 e2，则同步过程结束
     // a (b c)
     // d e (b c)
     while (i <= e1 && i <= e2) {
-      const n1 = c1[e1]
-      const n2 = (c2[e2] = optimized
+      const n1 = c1[e1] // 当前遍历的旧尾部子节点
+      const n2 = (c2[e2] = optimized // 当前遍历的新尾部子节点
         ? cloneIfMounted(c2[e2] as VNode)
         : normalizeVNode(c2[e2]))
-      if (isSameVNodeType(n1, n2)) {
+      if (isSameVNodeType(n1, n2)) { // 若 n1、n2 类型相同，递归执行 patch() 做更新
         patch(
           n1,
           n2,
@@ -1800,6 +1803,7 @@ function baseCreateRenderer(
       } else {
         break
       }
+      // 完成尾部节点的同步后，分别递减新旧尾节点索引
       e1--
       e2--
     }
