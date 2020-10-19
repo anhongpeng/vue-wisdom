@@ -845,9 +845,10 @@ function baseCreateRenderer(
     }
   }
 
+  // 更新元素节点：主要更新 props 和更新元素子节点（这很好理解，因为一个 DOM 元素节点就是由自身属性和字节点构成的）
   const patchElement = (
-    n1: VNode,
-    n2: VNode,
+    n1: VNode, // 旧节点
+    n2: VNode, // 新节点
     parentComponent: ComponentInternalInstance | null,
     parentSuspense: SuspenseBoundary | null,
     isSVG: boolean,
@@ -883,6 +884,7 @@ function baseCreateRenderer(
       // (i.e. at the exact same position in the source template)
       if (patchFlag & PatchFlags.FULL_PROPS) {
         // element props contain dynamic keys, full diff needed
+        // 更新 props：更新 DOM 节点的 class、style、event 及一些 DOM 属性
         patchProps(
           el,
           n2,
@@ -975,6 +977,7 @@ function baseCreateRenderer(
       }
     } else if (!optimized) {
       // full diff
+      // 更新子节点
       patchChildren(
         n1,
         n2,
@@ -1553,6 +1556,7 @@ function baseCreateRenderer(
     flushPreFlushCbs(undefined, instance.update)
   }
 
+  // 更新子节点
   const patchChildren: PatchChildrenFn = (
     n1,
     n2,
@@ -1563,9 +1567,9 @@ function baseCreateRenderer(
     isSVG,
     optimized = false
   ) => {
-    const c1 = n1 && n1.children
+    const c1 = n1 && n1.children // 旧节点的子节点
     const prevShapeFlag = n1 ? n1.shapeFlag : 0
-    const c2 = n2.children
+    const c2 = n2.children // 新节点的子节点
 
     const { patchFlag, shapeFlag } = n2
     // fast path
@@ -1601,18 +1605,35 @@ function baseCreateRenderer(
     }
 
     // children has 3 possibilities: text, array or no children.
+    // 子节点有 3 种可能的情况：文本、数组、空（所以新旧子节点的情况排列组合，就有 9 种情况）
+    // A.若旧子节点是纯文本：
+    //   1.若新子节点也是纯文本，那么替换为新子节点
+    //   2.若新子节点为空，那么删除旧子节点
+    //   3.若新子节点是 VNode 数组，那么先把旧子节点的文本清空，再去旧子节点的父容器下添加多个新子节点
+    // B.若旧子节点为空：
+    //   1.若新子节是纯文本，那么在旧子节点父容器下添加文本节点
+    //   2.若新子节点也是空，什么都不做
+    //   3.若新子节点是 VNode 数组，那么在旧子节点父容器下添加多个新子节点
+    // C.若旧子节点是 VNode 数组：
+    //   1.若新子节是纯文本，那么先删除旧子节点，再去旧子节点父容器下添加新文本节点
+    //   2.若新子节点是空，那么删除旧子节点
+    //   3.若新子节点也是 VNode 数组，那么完整地 Diff 新旧子节点 --> 内部运用了「核心 Diff 算法」
     if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
       // text children fast path
       if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
         unmountChildren(c1 as VNode[], parentComponent, parentSuspense)
       }
+      // 若文本对比不同，则替换为新文本
       if (c2 !== c1) {
+        // 调用宿主环境的设置元素文本（浏览器下 el.textContent = text）
         hostSetElementText(container, c2 as string)
       }
     } else {
       if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+        // 若旧子节点是数组
         // prev children was array
         if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+          // 若新的子节点也是数组，则做完成 Diff
           // two arrays, cannot assume anything, do full diff
           patchKeyedChildren(
             c1 as VNode[],
@@ -1626,15 +1647,20 @@ function baseCreateRenderer(
           )
         } else {
           // no new children, just unmount old
+          // 数组 -> 则仅仅删除之前的子节点
           unmountChildren(c1 as VNode[], parentComponent, parentSuspense, true)
         }
       } else {
         // prev children was text OR null
         // new children is array OR null
+        // 之前的子节点是文本或空
+        // 新的子节点是数组或空
         if (prevShapeFlag & ShapeFlags.TEXT_CHILDREN) {
+          // 如果之前子节点是文本，则将它清空
           hostSetElementText(container, '')
         }
         // mount new if array
+        // 如果新的子节点是数组，则挂载新子节点
         if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
           mountChildren(
             c2 as VNodeArrayChildren,
