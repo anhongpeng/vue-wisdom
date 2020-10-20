@@ -1844,7 +1844,9 @@ function baseCreateRenderer(
       }
     }
 
+    // 如果不满足添加新节点情况，那么接着判断旧子节点是否有剩余，满足则删除旧子节点
     // 4. common sequence + unmount
+    // 删除一段旧的子节点
     // (a b) c
     // (a b)
     // i = 2, e1 = 2, e2 = 1
@@ -1853,6 +1855,7 @@ function baseCreateRenderer(
     // i = 0, e1 = 0, e2 = -1
     else if (i > e2) {
       while (i <= e1) {
+        // 直接删除从索引 i 开始到索引 e1 之间的这段旧子节点
         unmount(c1[i], parentComponent, parentSuspense, true)
         i++
       }
