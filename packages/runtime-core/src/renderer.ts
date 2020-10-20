@@ -1808,18 +1808,26 @@ function baseCreateRenderer(
       e2--
     }
 
+    // 接下来，中间那段，有 3 种情况需要处理：
+    //   A.有剩余要添加的新子节点
+    //   B.有剩余要删除的旧子节点
+    //   C.未知新旧子节点序列
+
     // 3. common sequence + mount
+    // 挂载一段新的子节点
     // (a b)
     // (a b) c
     // i = 2, e1 = 1, e2 = 2
     // (a b)
     // c (a b)
     // i = 0, e1 = -1, e2 = 0
-    if (i > e1) {
-      if (i <= e2) {
+    if (i > e1) { // 待遍历索引 > 旧子节点尾部索引
+      if (i <= e2) { // 待遍历索引 <= 新子节点尾部索引
+        // 下面直接挂载从索引 i 到索引 e2 之间的这段新子节点
         const nextPos = e2 + 1
         const anchor = nextPos < l2 ? (c2[nextPos] as VNode).el : parentAnchor
         while (i <= e2) {
+          // 挂载新节点
           patch(
             null,
             (c2[i] = optimized
