@@ -1868,9 +1868,19 @@ function baseCreateRenderer(
     // 这些都相对较简单，最麻烦的是「移动」操作：
     //   既要判断哪些节点要移动
     //   又要确定如何移动
+    // 目标：如何用最少的移动？
+
+    // 接下来，要处理「未知子序列」，在这段新旧子节点序列中：
+    //   找出相同（type 和 key）节点，并更新
+    //   找出多余旧子节点，并删除
+    //   找出新的节点，并添加
+    //   找出是否有需要移动位置的节点，如果有，并移动
+
+    // 在查找过程中需要对比新旧子序列。如：遍历旧子序列过程中，判断某节点是否存在于新子序列。这就需要「双重循环」，它的时间复杂度是 O(n2)
+    // 为了优化这个复杂度，可以采用一种「空间换时间」的思路，建立「索引图」，把时间复杂度降低到 O(n)
 
     // 5. unknown sequence
-    // 处理未知序列
+    // 处理未知子序列
     // [i ... e1 + 1]: a b [c d e] f g
     // [i ... e2 + 1]: a b [e d c h] f g
     // i = 2, e1 = 4, e2 = 5
@@ -1879,6 +1889,7 @@ function baseCreateRenderer(
       const s2 = i // next starting index
 
       // 5.1 build key:index map for newChildren
+      // 构建出 key:index 的新子元素 Map（索引图）
       const keyToNewIndexMap: Map<string | number, number> = new Map()
       for (i = s2; i <= e2; i++) {
         const nextChild = (c2[i] = optimized
