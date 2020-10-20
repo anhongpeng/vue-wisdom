@@ -1761,6 +1761,9 @@ function baseCreateRenderer(
       const n2 = (c2[i] = optimized // 当前遍历的新子节点
         ? cloneIfMounted(c2[i] as VNode)
         : normalizeVNode(c2[i]))
+      
+      // 通常在开发过程中，会给 v-for 生成的列表中的每一项分配唯一 key 作为项的唯一 ID，这个 key 在 diff 过程中十分关键
+      // 对于新旧子序列中的节点，我们认为 key 相同的就是同一个节点，直接执行 patch 更新即可
       if (isSameVNodeType(n1, n2)) { // 若 n1、n2 节点类型和 Key 相同，递归执行 patch() 做更新
         patch(
           n1,
@@ -1885,16 +1888,18 @@ function baseCreateRenderer(
     // [i ... e2 + 1]: a b [e d c h] f g
     // i = 2, e1 = 4, e2 = 5
     else {
-      const s1 = i // prev starting index
-      const s2 = i // next starting index
+      const s1 = i // prev starting index 旧子序列开始遍历的索引
+      const s2 = i // next starting index 新子序列开始遍历的索引，新旧都从 i 开始
 
       // 5.1 build key:index map for newChildren
-      // 构建出 key:index 的新子元素 Map（索引图）
-      const keyToNewIndexMap: Map<string | number, number> = new Map()
+      // 构建出 key:index 的新子节点的索引图 Map
+      const keyToNewIndexMap: Map<string | number, number> = new Map() // Map<key, index> 结构
       for (i = s2; i <= e2; i++) {
+        // 先取到当前遍历的新子节点
         const nextChild = (c2[i] = optimized
           ? cloneIfMounted(c2[i] as VNode)
           : normalizeVNode(c2[i]))
+        // 然后将节点的 key 和索引 set 进索引图中
         if (nextChild.key != null) {
           if (__DEV__ && keyToNewIndexMap.has(nextChild.key)) {
             warn(
