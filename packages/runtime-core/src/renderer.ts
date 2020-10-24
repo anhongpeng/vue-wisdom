@@ -1991,25 +1991,30 @@ function baseCreateRenderer(
         }
       }
       // 小结流程：
-      //   1.正序遍历旧子序列，根据 keyToNewIndexMap 查找旧节点在新子序列索引中庸的位置
+      //   1.正序遍历旧子序列，根据 keyToNewIndexMap 查找旧节点在新子序列索引中的位置
       //   2.若找不到，说明新节点序列中没有，则删除
       //   3.若找到，则将索引更新到 newIndexToOldIndexMap 中
       // 至此，已完成了新旧子节点的更新、多余旧节点的删除，并且建立了 newIndexToOldIndexMap 存储新旧子节点序列的映射，并确定是否有移动
 
       // 5.3 move and mount
+      // 移动和挂载新节点
       // generate longest stable subsequence only when nodes have moved
+      // 仅当节点移动时，才生成「最长递增子序列」
       const increasingNewIndexSequence = moved
         ? getSequence(newIndexToOldIndexMap)
         : EMPTY_ARR
-      j = increasingNewIndexSequence.length - 1
+      j = increasingNewIndexSequence.length - 1 // 最长递增序列的末尾索引
       // looping backwards so that we can use last patched node as anchor
+      // 倒序遍历新子序列，因为我们可以使用最后更新的节点作为锚点
       for (i = toBePatched - 1; i >= 0; i--) {
-        const nextIndex = s2 + i
+        const nextIndex = s2 + i // 当前遍历的索引，倒序遍历
         const nextChild = c2[nextIndex] as VNode
+        // 锚点指向上一个更新的节点，如果超过了子序列长度，则指向 parentAnchor
         const anchor =
           nextIndex + 1 < l2 ? (c2[nextIndex + 1] as VNode).el : parentAnchor
         if (newIndexToOldIndexMap[i] === 0) {
           // mount new
+          // 在「新旧索引映射数组」中，若当前遍历的旧子节点索引是 0，则表示旧序列中没有此新节点，需要挂载
           patch(
             null,
             nextChild,
@@ -2023,6 +2028,9 @@ function baseCreateRenderer(
           // move if:
           // There is no stable subsequence (e.g. a reverse)
           // OR current node is not among the stable sequence
+          // 当以下 2 种情况时需要移动：
+          //   1.没有最长递增子序列，比如 reverse 后的序列
+          //   2.当前节点不在最长递增子序列中
           if (j < 0 || i !== increasingNewIndexSequence[j]) {
             move(nextChild, container, anchor, MoveType.REORDER)
           } else {
@@ -2032,6 +2040,7 @@ function baseCreateRenderer(
       }
     }
   }
+  // 小结：至此，求解出了从旧子序列生成新子序列 DOM 的新增、删除、更新、移动等系列操作，并且已较小成本的方式完成 DOM 更新
 
   const move: MoveFn = (
     vnode,
