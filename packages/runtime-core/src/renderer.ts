@@ -435,7 +435,7 @@ function baseCreateRenderer(
   // style in order to prevent being inlined by minifiers.
   // patch - 打补丁
   // 职责：
-  //   1.先判断新旧节点是否是相同的 VNode 类型，若不是，则删除旧节点，挂载新节点
+  //   1.先判断新旧 VNode 是否相同，若不是，则删除旧节点，挂载新节点
   //   2.如果是相同的 VNode 类型，走 Diff 更新流程，VNode 类型不同处理逻辑也不同
   const patch: PatchFn = (
     n1, // 旧的 vnode，当 n1 为 null 时，表示这是挂载过程
@@ -448,7 +448,7 @@ function baseCreateRenderer(
     optimized = false
   ) => {
     // patching & not same type, unmount old tree
-    // 如果存在新旧节点，且新旧节点类型不同，则销毁旧节点
+    // 如果存在新旧节点，且新旧节点不同，则销毁旧节点
     if (n1 && !isSameVNodeType(n1, n2)) {
       anchor = getNextHostNode(n1)
       unmount(n1, parentComponent, parentSuspense, true)
@@ -1633,7 +1633,7 @@ function baseCreateRenderer(
         // 若旧子节点是数组
         // prev children was array
         if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
-          // 若新的子节点也是数组，则做完成 Diff
+          // 若新的子节点也是数组，则做完整 Diff
           // two arrays, cannot assume anything, do full diff
           patchKeyedChildren(
             c1 as VNode[],
@@ -1735,8 +1735,8 @@ function baseCreateRenderer(
   // 目的：以较低成本完成子节点的更新
   // 算法中持续维护着：待遍历索引 i、旧子节点的尾部索引 e1、新子节点的尾部索引 e2
   const patchKeyedChildren = (
-    c1: VNode[], // 旧子节点数组
-    c2: VNodeArrayChildren, // 新子节点数组
+    c1: VNode[], // 旧序列（旧子节点数组）
+    c2: VNodeArrayChildren, // 新序列（新子节点数组）
     container: RendererElement, // 父容器 DOM
     parentAnchor: RendererNode | null,
     parentComponent: ComponentInternalInstance | null,
@@ -1745,12 +1745,12 @@ function baseCreateRenderer(
     optimized: boolean
   ) => {
     let i = 0 // 待遍历索引
-    const l2 = c2.length // 新子节点个数
+    const l2 = c2.length // 新序列的长度（新子节点个数）
     let e1 = c1.length - 1 // prev ending index 旧子节点的尾部索引
     let e2 = l2 - 1 // next ending index 新子节点的尾部索引
 
     // 1. sync from start
-    // 同步头部节点：从头部开始，依次对比新旧节点的类型和 Key：
+    // 更新头部节点：从头部开始，依次对比新旧节点的类型和 Key：
     //   若相同，则递归 patch 更新节点
     //   若不同，或者索引 i 大于索引 e1 或 e2，则同步过程结束
     // 初始时： i = 0，e1 = 2，e2 = 3
@@ -1782,7 +1782,7 @@ function baseCreateRenderer(
     }
 
     // 2. sync from end
-    // 同步尾部节点：从尾部开始，依次对比新旧节点类型：
+    // 更新尾部节点：从尾部开始，依次对比新旧节点是否相同：
     //   若相同，则递归 patch 更新节点
     //   若不同，或者索引 i 大于索引 e1 或 e2，则同步过程结束
     // a (b c)
@@ -1792,7 +1792,7 @@ function baseCreateRenderer(
       const n2 = (c2[e2] = optimized // 当前遍历的新尾部子节点
         ? cloneIfMounted(c2[e2] as VNode)
         : normalizeVNode(c2[e2]))
-      if (isSameVNodeType(n1, n2)) { // 若 n1、n2 类型相同，递归执行 patch() 做更新
+      if (isSameVNodeType(n1, n2)) { // 若 n1、n2 相同，递归执行 patch() 做更新
         patch(
           n1,
           n2,
@@ -1806,7 +1806,7 @@ function baseCreateRenderer(
       } else {
         break
       }
-      // 完成尾部节点的同步后，分别递减新旧尾节点索引
+      // 完成尾部节点的更新后，分别递减新旧尾节点索引
       e1--
       e2--
     }
@@ -1824,8 +1824,8 @@ function baseCreateRenderer(
     // (a b)
     // c (a b)
     // i = 0, e1 = -1, e2 = 0
-    if (i > e1) { // 待遍历索引 > 旧子节点尾部索引
-      if (i <= e2) { // 待遍历索引 <= 新子节点尾部索引
+    if (i > e1) { // 待遍历索引 > 旧序列尾部索引
+      if (i <= e2) { // 待遍历索引 <= 新序列尾部索引
         // 下面直接挂载从索引 i 到索引 e2 之间的这段新子节点
         const nextPos = e2 + 1
         const anchor = nextPos < l2 ? (c2[nextPos] as VNode).el : parentAnchor
@@ -1856,7 +1856,7 @@ function baseCreateRenderer(
     // a (b c)
     // (b c)
     // i = 0, e1 = 0, e2 = -1
-    else if (i > e2) {
+    else if (i > e2) { // 待遍历索引 > 新序列尾索引
       while (i <= e1) {
         // 直接删除从索引 i 开始到索引 e1 之间的这段旧子节点
         unmount(c1[i], parentComponent, parentSuspense, true)
@@ -1865,7 +1865,7 @@ function baseCreateRenderer(
     }
 
     // 承上启下的小结：
-    //   当两个节点类型（这里指 type 和 key）相同时，执行「更新」操作
+    //   当两个节点（这里指 type 和 key）相同时，执行「更新」操作
     //   当新子节点中没有旧子节点中某些节点时，执行「删除」操作
     //   当新子节点中多了旧子节点中没有的节点是，执行「添加」操作
     // 这些都相对较简单，最麻烦的是「移动」操作：
@@ -1991,7 +1991,7 @@ function baseCreateRenderer(
         }
       }
       // 小结流程：
-      //   1.正序遍历旧子序列，根据 keyToNewIndexMap 查找旧节点在新子序列索引中的位置
+      //   1.正序遍历旧序列，根据 keyToNewIndexMap 查找旧节点在新子序列索引中的位置
       //   2.若找不到，说明新节点序列中没有，则删除
       //   3.若找到，则将索引更新到 newIndexToOldIndexMap 中
       // 至此，已完成了新旧子节点的更新、多余旧节点的删除，并且建立了 newIndexToOldIndexMap 存储新旧子节点序列的映射，并确定是否有移动
