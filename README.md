@@ -1,5 +1,7 @@
 # vue-wisdom
 
+该号已转移，你可以在这里找到我：https://github.com/roc-an
+
 ## 本仓库的使用
 
 * 按照学习步骤，按顺序提交 `commit`，进行注解；
